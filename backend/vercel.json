@@ -17,6 +17,6 @@
     }
   ],
   "env": {
-    "MONGODB_URI": "@your-mongodb-uri"
+    "MONGODB_URI": "mongodb+srv://bharathac7:20190140752@mernecommerce.rrahaka.mongodb.net/hst_food?retryWrites=true&w=majority&appName=hst_food"
   }
 }
