@@ -1,0 +1,28 @@
+.user-usage {
+    background-color: #121212;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  
+  .user-usage h2 {
+    color: #ffffff;
+  }
+  
+  .user-usage table {
+    background-color: #1e1e1e;
+    color: #ffffff;
+  }
+  
+  .user-usage table th,
+  .user-usage table td {
+    border-color: #333333;
+  }
+  
+  .user-usage table tbody tr:nth-child(even) {
+    background-color: #2a2a2a;
+  }
+  
+  .user-usage table tbody tr:hover {
+    background-color: #333333;
+  }
+  

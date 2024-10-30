@@ -1,0 +1,71 @@
+/* frontend/src/components/UserDetails.css */
+.user-details {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #121212;
+    padding: 20px;
+  }
+  
+  .profile-card {
+    background-color: #1e1e1e;
+    border: none;
+    border-radius: 10px;
+    max-width: 500px;
+    width: 100%;
+    padding: 20px;
+    position: relative;
+  }
+  
+  .profile-image-container {
+    display: flex;
+    justify-content: center;
+    margin-top: -75px;
+  }
+  
+  .profile-image {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 5px solid #ffffff;
+    background-color: #ffffff;
+  }
+  
+  .profile-card .btn-primary {
+    background-color: #bb86fc;
+    border-color: #bb86fc;
+  }
+  
+  .profile-card .btn-primary:hover {
+    background-color: #9a68c3;
+    border-color: #9a68c3;
+  }
+  
+  .loading {
+    text-align: center;
+    margin-top: 50px;
+    color: #ffffff;
+  }
+  
+  /* Bright Text Colors */
+  .profile-card .card-title,
+  .profile-card .card-text {
+    color: #e0e0e0;
+  }
+  
+  .profile-card .card-text strong {
+    color: #ffffff;
+  }
+  
+  .usage-link .btn-info {
+    background-color: #03dac6;
+    border-color: #03dac6;
+  }
+  
+  .usage-link .btn-info:hover {
+    background-color: #029e9e;
+    border-color: #029e9e;
+  }
+  
