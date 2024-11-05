@@ -1,8 +1,8 @@
-// backend/routes/getUsages.js
+// api/routes/getUsages.js
 
 const express = require('express');
 const router = express.Router();
-const Usage = require('../models/Usage');
+const Usage = require('../../backend/models/Usage');
 
 // GET /api/usages - Get all usages with optional filters
 router.get('/usages', async (req, res) => {
@@ -21,8 +21,8 @@ router.get('/usages', async (req, res) => {
     const usages = await Usage.find(filter).sort({ timestamp: -1 });
     res.json(usages);
   } catch (error) {
-    console.error('Error fetching usages:', error);
-    res.status(500).json({ message: 'Server Error' });
+    console.error('Error fetching usages:', error.message);
+    res.status(500).json({ message: 'Server Error', error: error.message });
   }
 });
 
