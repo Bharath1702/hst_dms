@@ -4,7 +4,6 @@ const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const serverless = require('serverless-http'); // Import serverless-http
 const User = require('./models/User');
 const Usage = require('./models/Usage');
 const CouponValidity = require('./models/CouponValidity');
@@ -32,7 +31,7 @@ const getUserCouponsRoute = require('./routes/getUserCoupons');
 const getUserDataRoute = require('./routes/getUserData');
 const scanCouponRoute = require('./routes/scanCoupon');
 const couponValidityRoutes = require('./routes/couponValidityRoutes');
-const getUsagesRoute = require('./routes/getUsages'); // New route
+const getUsagesRoute = require('./routes/getUsages');
 
 // Use routes
 app.use('/api', getAllUsersRoute);
@@ -40,12 +39,15 @@ app.use('/api', getUserCouponsRoute);
 app.use('/api', getUserDataRoute);
 app.use('/api', scanCouponRoute);
 app.use('/api', couponValidityRoutes);
-app.use('/api', getUsagesRoute); // Add new route
+app.use('/api', getUsagesRoute);
 
 // Health Check Route (Optional but recommended)
 app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'OK' });
 });
 
-// Export the serverless handler
-module.exports.handler = serverless(app);
+// Start the server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
