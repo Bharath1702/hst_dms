@@ -1,5 +1,3 @@
-// backend/index.js
-
 const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
@@ -15,7 +13,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// MongoDB Atlas connection with connection pooling
+// MongoDB Atlas connection
 if (!mongoose.connection.readyState) {
   mongoose.connect(process.env.MONGODB_URI, {
     useNewUrlParser: true,
@@ -41,13 +39,10 @@ app.use('/api', scanCouponRoute);
 app.use('/api', couponValidityRoutes);
 app.use('/api', getUsagesRoute);
 
-// Health Check Route (Optional but recommended)
+// Health Check Route
 app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'OK' });
 });
 
-// Start the server
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// Export the Express app
+module.exports = app;
