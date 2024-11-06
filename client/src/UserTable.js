@@ -24,7 +24,7 @@ function UserTable() {
   }, []);
 
   const handleDownloadQR = (indId, index) => {
-    const qrCodeElement = document.getElementById(`qr-code-${index}`);
+    const qrCodeElement = document.getElementById(`qr-code-container-${index}`);
     toPng(qrCodeElement)
       .then((dataUrl) => {
         download(dataUrl, `${indId}_QRCode.png`);
@@ -81,14 +81,35 @@ function UserTable() {
               </td>
               <td>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <div id={`qr-code-${index}`}>
+                  {/* QR Code Container */}
+                  <div
+                    id={`qr-code-container-${index}`}
+                    style={{ position: 'relative', width: '128px', height: '128px' }}
+                  >
+                    {/* QR Code */}
                     <QRCodeCanvas
                       value={`http://localhost:3000/user/${user.IND_ID}`}
                       size={128}
                       level="H"
                       includeMargin={true}
                     />
+                    {/* Overlay Text */}
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: '96%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        backgroundColor: '',
+                        color:'black',
+                        padding: '2px 5px',
+                        borderRadius: '5px',
+                      }}
+                    >
+                      <span style={{ fontWeight: 'bold', fontSize: '14px' }}>{user.IND_ID}</span>
+                    </div>
                   </div>
+                  {/* Action Buttons */}
                   <OverlayTrigger
                     placement="top"
                     overlay={renderTooltip(`View details of ${user.FullName}`)}
