@@ -58,7 +58,7 @@ app.listen(PORT, () => {
 // Schedule the data fetching every 5 minutes
 cron.schedule('*/5 * * * *', async () => {
   try {
-    console.log('Scheduled Task: Fetching data from SheetDB...');
+    console.log('Scheduled Task: Fetching data from SheetDB..');
     const response = await axios.get(`http://localhost:${PORT}/api/fetch-sheetdb-data`);
     console.log('Scheduled Task: Data fetched and synchronized successfully.');
   } catch (error) {
