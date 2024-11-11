@@ -4,29 +4,25 @@ const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const cron = require('node-cron'); // Import node-cron
+const cron = require('node-cron');
 const User = require('./models/User');
 const Usage = require('./models/Usage');
 const CouponValidity = require('./models/CouponValidity');
-const fetchSheetDBDataRoute = require('./routes/fetchSheetDBData'); // Existing route
+const fetchSheetDBDataRoute = require('./routes/fetchSheetDBData');
 require('dotenv').config();
 
 const app = express();
 
-// CORS Configuration
-const allowedOrigins = ['https://hst-dms-frontend.vercel.app', 'http://localhost:3000'];
-app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true, // If using cookies or auth headers
-}));
+// Global CORS Headers
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*'); // Replace '*' with specific origin for production
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  next();
+});
 
 // Middleware
+app.use(cors()); // Using cors as middleware globally
 app.use(express.json());
 
 // MongoDB Atlas connection
@@ -54,7 +50,7 @@ app.use('/api', getUserDataRoute);
 app.use('/api', scanCouponRoute);
 app.use('/api', couponValidityRoutes);
 app.use('/api', getUsagesRoute);
-app.use('/api', fetchSheetDBDataRoute); // Existing fetch route
+app.use('/api', fetchSheetDBDataRoute);
 
 // Health Check Route
 app.get('/api/health', (req, res) => {
@@ -71,7 +67,7 @@ app.listen(PORT, () => {
 cron.schedule('*/1 * * * *', async () => {
   try {
     console.log('Scheduled Task: Fetching data from SheetDB..');
-    const response = await axios.get(`https://hst-dms.vercel.app:${PORT}/api/fetch-sheetdb-data`);
+    const response = await axios.get(`https://hst-dms.vercel.app${PORT}/api/fetch-sheetdb-data`);
     console.log('Scheduled Task: Data fetched and synchronized successfully.');
   } catch (error) {
     console.error('Scheduled Task Error:', error.message);
