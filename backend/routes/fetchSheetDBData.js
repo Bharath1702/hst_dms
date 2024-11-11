@@ -1,5 +1,3 @@
-// backend/routes/fetchSheetDBData.js
-
 const express = require('express');
 const router = express.Router();
 const axios = require('axios');
@@ -39,9 +37,12 @@ router.post('/fetch-sheetdb-data', async (req, res) => {
 
     // Prepare bulk operations for upserting
     const bulkOps = sheetData.map(record => {
+      // Log each record to verify the "Full Name" field
+      console.log('Record fetched from SheetDB:', record);
+
       const userData = {
         IND_ID: record['IND_ID'],
-        FullName: record['Full Name'],
+        FullName: record['Full Name'],  // Ensure this is correctly mapped
         Event: record['Event'],
         State: record['State'],
         Org: record['Org'],
@@ -113,9 +114,12 @@ router.get('/fetch-sheetdb-data', async (req, res) => {
 
     // Prepare bulk operations for upserting
     const bulkOps = sheetData.map(record => {
+      // Log each record to verify the "Full Name" field
+      console.log('Record fetched from SheetDB:', record);
+
       const userData = {
         IND_ID: record['IND_ID'],
-        FullName: record['Full Name'],
+        FullName: record['Full Name'],  // Ensure this is correctly mapped
         Event: record['Event'],
         State: record['State'],
         Org: record['Org'],
