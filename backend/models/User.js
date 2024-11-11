@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 
 const UserSchema = new mongoose.Schema({
   IND_ID: { type: String, unique: true },
-  FullName: { type: String, alias: 'Full Name' },
+  FullName: String,
   Event: String,
   State: String,
   Org: String,
