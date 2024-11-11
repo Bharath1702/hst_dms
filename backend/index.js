@@ -12,7 +12,7 @@ const app = express();
 
 // Global CORS Headers
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Origin', '*'); // Adjust this in production for security
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
   next();
@@ -37,7 +37,7 @@ const getAllUsersRoute = require('./routes/getAllUsers');
 const getUserCouponsRoute = require('./routes/getUserCoupons');
 const getUserDataRoute = require('./routes/getUserData');
 const scanCouponRoute = require('./routes/scanCoupon');
-const couponValidityRoutes = require('./routes/couponValidityRoutes');
+const couponValidityRoutes = require('./routes/couponValidityRoutes'); // Updated route
 const getUsagesRoute = require('./routes/getUsages');
 
 // Use routes
@@ -45,7 +45,7 @@ app.use('/api', getAllUsersRoute);
 app.use('/api', getUserCouponsRoute);
 app.use('/api', getUserDataRoute);
 app.use('/api', scanCouponRoute);
-app.use('/api', couponValidityRoutes);
+app.use('/api', couponValidityRoutes); // Use the updated coupon validity routes
 app.use('/api', getUsagesRoute);
 app.use('/api', fetchSheetDBDataRoute);
 

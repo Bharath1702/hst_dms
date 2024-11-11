@@ -18,17 +18,22 @@ function CouponValidityManager() {
       setCouponValidities(response.data);
     } catch (error) {
       console.error('Error fetching coupon validities:', error);
+      alert('Error fetching coupon validities.');
     }
   };
 
   // Function to format date to 'YYYY-MM-DDTHH:MM' in local timezone
   const formatDateTimeLocal = (dateString) => {
     const date = new Date(dateString);
-    // Get the offset in milliseconds
-    const timezoneOffset = date.getTimezoneOffset() * 60000;
-    // Adjust the date to local timezone
-    const localDate = new Date(date.getTime() - timezoneOffset);
-    return localDate.toISOString().slice(0, 16);
+    const pad = (num) => String(num).padStart(2, '0');
+
+    const year = date.getFullYear();
+    const month = pad(date.getMonth() + 1); // Months are zero-indexed
+    const day = pad(date.getDate());
+    const hours = pad(date.getHours());
+    const minutes = pad(date.getMinutes());
+
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
 
   const handleInputChange = (couponIndex, field, value) => {
@@ -42,8 +47,13 @@ function CouponValidityManager() {
   };
 
   const handleSave = async (couponIndex, id) => {
-    const { startDateTime, endDateTime } = formState[couponIndex];
-  
+    const { startDateTime, endDateTime } = formState[couponIndex] || {};
+
+    if (!startDateTime || !endDateTime) {
+      alert('Please provide both Start DateTime and End DateTime.');
+      return;
+    }
+
     try {
       if (id) {
         // Update existing coupon validity
@@ -67,7 +77,6 @@ function CouponValidityManager() {
       alert('Error saving coupon validity.');
     }
   };
-  
 
   const handleDelete = async (id, couponIndex) => {
     if (window.confirm(`Are you sure you want to delete validity for Coupon ${couponIndex}?`)) {
