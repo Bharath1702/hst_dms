@@ -1,6 +1,6 @@
 // frontend/src/components/UserDetails.js
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { Container, Card, Button, Alert } from 'react-bootstrap';
 import axios from 'axios';
 import './UserDetails.css';
@@ -31,10 +31,12 @@ function UserDetails() {
   const handleSaveContact = () => {
     if (!user) return;
 
+    const fullName = user.FullName || user['Full Name'] || 'Unknown Name';
+
     const vCardData = `
 BEGIN:VCARD
 VERSION:3.0
-FN:${user.FullName || 'Unknown Name'}
+FN:${fullName}
 EMAIL;TYPE=INTERNET:${user.Email || ''}
 TEL;TYPE=CELL:${user.Phone || ''}
 END:VCARD
@@ -45,19 +47,24 @@ END:VCARD
 
     const link = document.createElement('a');
     link.href = url;
-    link.download = `${(user.FullName || 'Unknown').replace(/\s+/g, '_')}.vcf`; // Add a fallback for undefined FullName
+    link.download = `${fullName.replace(/\s+/g, '_')}.vcf`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
 
-    URL.revokeObjectURL(url); // Revoke URL after download
+    URL.revokeObjectURL(url);
   };
 
   if (!user) {
     return <h1 className="loading">Loading...</h1>;
   }
 
-  const profileImage = user.Pic && user.Pic.trim() !== '' ? user.Pic : 'https://via.placeholder.com/150';
+  const profileImage =
+    user.Pic && user.Pic.trim() !== ''
+      ? user.Pic
+      : 'https://via.placeholder.com/150';
+
+  const fullName = user.FullName || user['Full Name'] || 'No Name Provided';
 
   return (
     <div className="user-details">
@@ -79,10 +86,15 @@ END:VCARD
         )}
         <Card className="profile-card text-center">
           <div className="profile-image-container">
-            <Card.Img variant="top" src={profileImage} alt="Profile Picture" className="profile-image" />
+            <Card.Img
+              variant="top"
+              src={profileImage}
+              alt="Profile Picture"
+              className="profile-image"
+            />
           </div>
           <Card.Body>
-            <Card.Title>{user.FullName}</Card.Title>
+            <Card.Title>{fullName}</Card.Title>
             <Card.Text>
               <strong>Event:</strong> {user.Event}
             </Card.Text>

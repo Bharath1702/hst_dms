@@ -136,7 +136,7 @@ function UserTable() {
           {users.map((user, index) => (
             <tr key={user.IND_ID}>
               <td title={user.IND_ID}>{truncateText(user.IND_ID)}</td>
-              <td title={user.FullName}>{truncateText(user.FullName)}</td>
+              <td title={user.FullName || user['Full Name']}>{truncateText(user.FullName || user['Full Name'])}</td>
               <td title={user.Event}>{truncateText(user.Event)}</td>
               <td title={user.State}>{truncateText(user.State)}</td>
               <td title={user.Org}>{truncateText(user.Org)}</td>
@@ -206,7 +206,7 @@ function UserTable() {
                   <OverlayTrigger
                     placement="top"
                     overlay={renderTooltip(
-                      `View details of ${user.FullName}`
+                      `View details of ${user.FullName || user['Full Name']}`
                     )}
                   >
                     <Button
