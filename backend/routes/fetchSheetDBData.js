@@ -31,6 +31,9 @@ router.post('/fetch-sheetdb-data', async (req, res) => {
     const response = await axios.get(SHEETDB_API_URL);
     const sheetData = response.data;
 
+    // Log the fetched data
+    console.log('SheetDB Data:', sheetData);
+
     // Extract IND_IDs from the SheetDB data
     const sheetIND_IDs = sheetData.map(record => record['IND_ID']);
 
@@ -51,18 +54,25 @@ router.post('/fetch-sheetdb-data', async (req, res) => {
         Bio: record['Bio'],
         Pic: record['Pic'],
         QRCode: record['QR code'],
-        FoodEligibility: [
-          Number(record['Food Eligibility 1']),
-          Number(record['Food Eligibility 2']),
-          Number(record['Food Eligibility 3']),
-          Number(record['Food Eligibility 4']),
-          Number(record['Food Eligibility 5']),
-          Number(record['Food Eligibility 6']),
-          Number(record['Food Eligibility 7']),
-          Number(record['Food Eligibility 8']),
-          Number(record['Food Eligibility 9']),
-        ],
+        FoodEligibility: []
       };
+
+      // Collect Food Eligibility values
+      for (let i = 1; i <= 9; i++) {
+        const feValue = record[`Food Eligibility ${i}`];
+
+        // Convert the value to a number, handle possible string values
+        let numValue = 0;
+        if (feValue !== undefined && feValue !== null && feValue.toString().trim() !== '') {
+          numValue = parseInt(feValue.toString().trim(), 10);
+          if (isNaN(numValue)) {
+            // Handle case where the value is not a number
+            numValue = 0;
+          }
+        }
+
+        userData.FoodEligibility.push(numValue);
+      }
 
       return {
         updateOne: {
@@ -106,6 +116,9 @@ router.get('/fetch-sheetdb-data', async (req, res) => {
     const response = await axios.get(SHEETDB_API_URL);
     const sheetData = response.data;
 
+    // Log the fetched data
+    console.log('SheetDB Data:', sheetData);
+
     // Extract IND_IDs from the SheetDB data
     const sheetIND_IDs = sheetData.map(record => record['IND_ID']);
 
@@ -126,18 +139,24 @@ router.get('/fetch-sheetdb-data', async (req, res) => {
         Bio: record['Bio'],
         Pic: record['Pic'],
         QRCode: record['QR code'],
-        FoodEligibility: [
-          Number(record['Food Eligibility 1']),
-          Number(record['Food Eligibility 2']),
-          Number(record['Food Eligibility 3']),
-          Number(record['Food Eligibility 4']),
-          Number(record['Food Eligibility 5']),
-          Number(record['Food Eligibility 6']),
-          Number(record['Food Eligibility 7']),
-          Number(record['Food Eligibility 8']),
-          Number(record['Food Eligibility 9']),
-        ],
+        FoodEligibility: []
       };
+
+      // Collect Food Eligibility values
+      for (let i = 1; i <= 9; i++) {
+        const feValue = record[`Food Eligibility ${i}`];
+
+        // Convert the value to a number, handle possible string values
+        let numValue = 0;
+        if (feValue !== undefined && feValue !== null && feValue.toString().trim() !== '') {
+          numValue = parseInt(feValue.toString().trim(), 10);
+          if (isNaN(numValue)) {
+            numValue = 0;
+          }
+        }
+
+        userData.FoodEligibility.push(numValue);
+      }
 
       return {
         updateOne: {
