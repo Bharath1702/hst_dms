@@ -6,9 +6,9 @@ import axios from 'axios';
 
 function UsagePage() {
   const [usages, setUsages] = useState([]);
+  const [filteredUsages, setFilteredUsages] = useState([]);
   const [filterIND_ID, setFilterIND_ID] = useState('');
   const [filterCouponIndex, setFilterCouponIndex] = useState('');
-  const [uniqueIND_IDs, setUniqueIND_IDs] = useState([]);
   const [uniqueCouponIndexes, setUniqueCouponIndexes] = useState([]);
 
   useEffect(() => {
@@ -20,8 +20,6 @@ function UsagePage() {
     axios.get('http://localhost:5000/api/usages')
       .then((response) => {
         const data = response.data;
-        const IND_IDs = [...new Set(data.map(u => u.IND_ID))].sort();
-        setUniqueIND_IDs(IND_IDs);
         const couponIndexes = [...new Set(data.map(u => u.couponIndex + 1))].sort();
         setUniqueCouponIndexes(couponIndexes);
       })
@@ -31,13 +29,10 @@ function UsagePage() {
   };
 
   const fetchUsages = () => {
-    const params = {};
-    if (filterIND_ID) params.IND_ID = filterIND_ID;
-    if (filterCouponIndex) params.couponIndex = filterCouponIndex - 1;
-
-    axios.get('http://localhost:5000/api/usages', { params })
+    axios.get('http://localhost:5000/api/usages')
       .then((response) => {
         setUsages(response.data);
+        setFilteredUsages(response.data); // Initialize filteredUsages with full data
       })
       .catch((error) => {
         console.error('Error fetching usages:', error);
@@ -45,13 +40,28 @@ function UsagePage() {
   };
 
   const handleFilterChange = () => {
-    fetchUsages();
+    let updatedUsages = [...usages];
+
+    if (filterIND_ID) {
+      // Apply partial match on IND_ID
+      updatedUsages = updatedUsages.filter((usage) =>
+        usage.IND_ID.includes(filterIND_ID)
+      );
+    }
+
+    if (filterCouponIndex) {
+      updatedUsages = updatedUsages.filter(
+        (usage) => usage.couponIndex + 1 === parseInt(filterCouponIndex)
+      );
+    }
+
+    setFilteredUsages(updatedUsages);
   };
 
   const handleFilterReset = () => {
     setFilterIND_ID('');
     setFilterCouponIndex('');
-    fetchUsages();
+    setFilteredUsages(usages); // Reset to show all usages
   };
 
   return (
@@ -61,13 +71,13 @@ function UsagePage() {
         <Row>
           <Col md={4}>
             <Form.Group controlId="filterIND_ID">
-              <Form.Label>Filter by IND_ID</Form.Label>
-              <Form.Control as="select" value={filterIND_ID} onChange={(e) => setFilterIND_ID(e.target.value)}>
-                <option value="">All</option>
-                {uniqueIND_IDs.map((id) => (
-                  <option key={id} value={id}>{id}</option>
-                ))}
-              </Form.Control>
+              <Form.Label>Search by IND_ID</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Enter IND_ID"
+                value={filterIND_ID}
+                onChange={(e) => setFilterIND_ID(e.target.value)}
+              />
             </Form.Group>
           </Col>
           <Col md={4}>
@@ -98,8 +108,8 @@ function UsagePage() {
           </tr>
         </thead>
         <tbody>
-          {usages.length > 0 ? (
-            usages.map((usage, index) => (
+          {filteredUsages.length > 0 ? (
+            filteredUsages.map((usage, index) => (
               <tr key={index}>
                 <td>{usage.IND_ID}</td>
                 <td>{usage.couponIndex + 1}</td>
