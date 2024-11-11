@@ -24,15 +24,28 @@ router.post('/coupon-validities', async (req, res) => {
       return res.status(400).json({ message: 'couponIndex, startDateTime, and endDateTime are required.' });
     }
 
-    // Convert local time to UTC
-    const startUTC = new Date(startDateTime).toISOString();
-    const endUTC = new Date(endDateTime).toISOString();
+    // Validate that startDateTime is before endDateTime
+    if (new Date(startDateTime) >= new Date(endDateTime)) {
+      return res.status(400).json({ message: 'startDateTime must be before endDateTime.' });
+    }
 
-    const validity = await CouponValidity.findOneAndUpdate(
-      { couponIndex },
-      { startDateTime: startUTC, endDateTime: endUTC },
-      { upsert: true, new: true, setDefaultsOnInsert: true }
-    );
+    // Check if a validity for this couponIndex already exists
+    let validity = await CouponValidity.findOne({ couponIndex });
+
+    if (validity) {
+      // Update existing validity
+      validity.startDateTime = new Date(startDateTime);
+      validity.endDateTime = new Date(endDateTime);
+      await validity.save();
+    } else {
+      // Create new validity
+      validity = new CouponValidity({
+        couponIndex,
+        startDateTime: new Date(startDateTime),
+        endDateTime: new Date(endDateTime),
+      });
+      await validity.save();
+    }
 
     res.json(validity);
   } catch (error) {
@@ -51,19 +64,22 @@ router.put('/coupon-validities/:id', async (req, res) => {
       return res.status(400).json({ message: 'couponIndex, startDateTime, and endDateTime are required.' });
     }
 
-    // Convert local time to UTC
-    const startUTC = new Date(startDateTime).toISOString();
-    const endUTC = new Date(endDateTime).toISOString();
+    // Validate that startDateTime is before endDateTime
+    if (new Date(startDateTime) >= new Date(endDateTime)) {
+      return res.status(400).json({ message: 'startDateTime must be before endDateTime.' });
+    }
 
-    const validity = await CouponValidity.findByIdAndUpdate(
-      id,
-      { couponIndex, startDateTime: startUTC, endDateTime: endUTC },
-      { new: true }
-    );
+    const validity = await CouponValidity.findById(id);
 
     if (!validity) {
       return res.status(404).json({ message: 'Coupon Validity not found.' });
     }
+
+    validity.couponIndex = couponIndex;
+    validity.startDateTime = new Date(startDateTime);
+    validity.endDateTime = new Date(endDateTime);
+
+    await validity.save();
 
     res.json(validity);
   } catch (error) {

@@ -16,6 +16,8 @@ const CouponValiditySchema = new mongoose.Schema({
     type: Date,
     required: true,
   },
+}, {
+  timestamps: true, // Optional: Adds createdAt and updatedAt fields
 });
 
 module.exports = mongoose.model('CouponValidity', CouponValiditySchema);

@@ -4,6 +4,25 @@ import React, { useEffect, useState } from 'react';
 import { Container, Table, Form, Button } from 'react-bootstrap';
 import axios from 'axios';
 
+// Utility functions for date conversions
+const toUTCString = (localDateTime) => {
+  const localDate = new Date(localDateTime);
+  return localDate.toISOString();
+};
+
+const fromUTCString = (utcDateTime) => {
+  const utcDate = new Date(utcDateTime);
+  const pad = (num) => String(num).padStart(2, '0');
+
+  const year = utcDate.getFullYear();
+  const month = pad(utcDate.getMonth() + 1); // Months are zero-indexed
+  const day = pad(utcDate.getDate());
+  const hours = pad(utcDate.getHours());
+  const minutes = pad(utcDate.getMinutes());
+
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
+
 function CouponValidityManager() {
   const [couponValidities, setCouponValidities] = useState([]);
   const [formState, setFormState] = useState({});
@@ -12,28 +31,16 @@ function CouponValidityManager() {
     fetchCouponValidities();
   }, []);
 
+  const API_BASE_URL = 'https://hst-dms.vercel.app/api';
+
   const fetchCouponValidities = async () => {
     try {
-      const response = await axios.get('https://hst-dms.vercel.app/api/coupon-validities');
+      const response = await axios.get(`${API_BASE_URL}/coupon-validities`);
       setCouponValidities(response.data);
     } catch (error) {
       console.error('Error fetching coupon validities:', error);
       alert('Error fetching coupon validities.');
     }
-  };
-
-  // Function to format date to 'YYYY-MM-DDTHH:MM' in local timezone
-  const formatDateTimeLocal = (dateString) => {
-    const date = new Date(dateString);
-    const pad = (num) => String(num).padStart(2, '0');
-
-    const year = date.getFullYear();
-    const month = pad(date.getMonth() + 1); // Months are zero-indexed
-    const day = pad(date.getDate());
-    const hours = pad(date.getHours());
-    const minutes = pad(date.getMinutes());
-
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
 
   const handleInputChange = (couponIndex, field, value) => {
@@ -54,20 +61,24 @@ function CouponValidityManager() {
       return;
     }
 
+    // Convert local datetime to UTC before sending
+    const startUTC = toUTCString(startDateTime);
+    const endUTC = toUTCString(endDateTime);
+
     try {
       if (id) {
         // Update existing coupon validity
-        await axios.put(`https://hst-dms.vercel.app/api/coupon-validities/${id}`, {
+        await axios.put(`${API_BASE_URL}/coupon-validities/${id}`, {
           couponIndex,
-          startDateTime,
-          endDateTime,
+          startDateTime: startUTC,
+          endDateTime: endUTC,
         });
       } else {
         // Create new coupon validity
-        await axios.post('https://hst-dms.vercel.app/api/coupon-validities', {
+        await axios.post(`${API_BASE_URL}/coupon-validities`, {
           couponIndex,
-          startDateTime,
-          endDateTime,
+          startDateTime: startUTC,
+          endDateTime: endUTC,
         });
       }
       fetchCouponValidities();
@@ -81,7 +92,7 @@ function CouponValidityManager() {
   const handleDelete = async (id, couponIndex) => {
     if (window.confirm(`Are you sure you want to delete validity for Coupon ${couponIndex}?`)) {
       try {
-        await axios.delete(`https://hst-dms.vercel.app/api/coupon-validities/${id}`);
+        await axios.delete(`${API_BASE_URL}/coupon-validities/${id}`);
         fetchCouponValidities();
         alert(`Coupon ${couponIndex} validity deleted successfully.`);
       } catch (error) {
@@ -117,7 +128,7 @@ function CouponValidityManager() {
                     type="datetime-local"
                     value={
                       formValues.startDateTime ||
-                      (validity ? formatDateTimeLocal(validity.startDateTime) : '')
+                      (validity ? fromUTCString(validity.startDateTime) : '')
                     }
                     onChange={(e) => handleInputChange(couponIndex, 'startDateTime', e.target.value)}
                   />
@@ -127,7 +138,7 @@ function CouponValidityManager() {
                     type="datetime-local"
                     value={
                       formValues.endDateTime ||
-                      (validity ? formatDateTimeLocal(validity.endDateTime) : '')
+                      (validity ? fromUTCString(validity.endDateTime) : '')
                     }
                     onChange={(e) => handleInputChange(couponIndex, 'endDateTime', e.target.value)}
                   />
