@@ -13,8 +13,20 @@ require('dotenv').config();
 
 const app = express();
 
+// CORS Configuration
+const allowedOrigins = ['https://hst-dms-frontend.vercel.app', 'http://localhost:3000'];
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true, // If using cookies or auth headers
+}));
+
 // Middleware
-app.use(cors());
 app.use(express.json());
 
 // MongoDB Atlas connection
@@ -59,7 +71,7 @@ app.listen(PORT, () => {
 cron.schedule('*/1 * * * *', async () => {
   try {
     console.log('Scheduled Task: Fetching data from SheetDB..');
-    const response = await axios.get(`http://localhost:${PORT}/api/fetch-sheetdb-data`);
+    const response = await axios.get(`https://hst-dms.vercel.app:${PORT}/api/fetch-sheetdb-data`);
     console.log('Scheduled Task: Data fetched and synchronized successfully.');
   } catch (error) {
     console.error('Scheduled Task Error:', error.message);
