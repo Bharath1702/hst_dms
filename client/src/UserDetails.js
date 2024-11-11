@@ -1,4 +1,5 @@
 // frontend/src/components/UserDetails.js
+
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Container, Card, Button, Alert } from 'react-bootstrap';
@@ -38,17 +39,19 @@ FN:${user.FullName}
 EMAIL;TYPE=INTERNET:${user.Email}
 TEL;TYPE=CELL:${user.Phone}
 END:VCARD
-    `;
+    `.trim();
 
-    const blob = new Blob([vCardData], { type: 'text/vcard;charset=utf-8' });
+    const blob = new Blob([vCardData], { type: 'text/vcard' });
     const url = URL.createObjectURL(blob);
+
     const link = document.createElement('a');
     link.href = url;
     link.download = `${user.FullName.replace(/\s+/g, '_')}.vcf`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+
+    URL.revokeObjectURL(url); // Revoke URL after download
   };
 
   if (!user) {
@@ -104,7 +107,6 @@ END:VCARD
             </Button>
           </Card.Body>
         </Card>
-        
       </Container>
     </div>
   );
