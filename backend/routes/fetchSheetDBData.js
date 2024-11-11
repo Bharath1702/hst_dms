@@ -1,3 +1,5 @@
+// backend/routes/fetchSheetDBData.js
+
 const express = require('express');
 const router = express.Router();
 const axios = require('axios');
@@ -29,38 +31,38 @@ router.post('/fetch-sheetdb-data', async (req, res) => {
     const response = await axios.get(SHEETDB_API_URL);
     const sheetData = response.data;
 
-    // Extract IND_IDs from the SheetDB data
-    const sheetIND_IDs = sheetData.map(record => record['IND_ID']);
+    // Extract IND_IDs from the SheetDB data (using the correct field name)
+    const sheetIND_IDs = sheetData.map(record => record['ind_id']);
 
     // Delete users in MongoDB that are not in the SheetDB data
     await User.deleteMany({ IND_ID: { $nin: sheetIND_IDs } });
 
     // Prepare bulk operations for upserting
     const bulkOps = sheetData.map(record => {
-      // Log each record to verify the "Full Name" field
+      // Log each record to verify the field names
       console.log('Record fetched from SheetDB:', record);
 
       const userData = {
-        IND_ID: record['IND_ID'],
-        FullName: record['Full Name'],  // Ensure this is correctly mapped
-        Event: record['Event'],
-        State: record['State'],
-        Org: record['Org'],
-        Phone: record['Phone'],
-        Email: record['Email'],
-        Bio: record['Bio'],
-        Pic: record['Pic'],
-        QRCode: record['QR code'],
+        IND_ID: record['ind_id'],
+        FullName: record['full_name'],
+        Event: record['event'],
+        State: record['state'],
+        Org: record['org'],
+        Phone: record['phone'],
+        Email: record['email'],
+        Bio: record['bio'],
+        Pic: record['pic'],
+        QRCode: record['qr_code'],
         FoodEligibility: [
-          Number(record['Food Eligibility 1']),
-          Number(record['Food Eligibility 2']),
-          Number(record['Food Eligibility 3']),
-          Number(record['Food Eligibility 4']),
-          Number(record['Food Eligibility 5']),
-          Number(record['Food Eligibility 6']),
-          Number(record['Food Eligibility 7']),
-          Number(record['Food Eligibility 8']),
-          Number(record['Food Eligibility 9']),
+          Number(record['food_eligibility_1']),
+          Number(record['food_eligibility_2']),
+          Number(record['food_eligibility_3']),
+          Number(record['food_eligibility_4']),
+          Number(record['food_eligibility_5']),
+          Number(record['food_eligibility_6']),
+          Number(record['food_eligibility_7']),
+          Number(record['food_eligibility_8']),
+          Number(record['food_eligibility_9']),
         ],
       };
 
@@ -106,38 +108,38 @@ router.get('/fetch-sheetdb-data', async (req, res) => {
     const response = await axios.get(SHEETDB_API_URL);
     const sheetData = response.data;
 
-    // Extract IND_IDs from the SheetDB data
-    const sheetIND_IDs = sheetData.map(record => record['IND_ID']);
+    // Extract IND_IDs from the SheetDB data (using the correct field name)
+    const sheetIND_IDs = sheetData.map(record => record['ind_id']);
 
     // Delete users in MongoDB that are not in the SheetDB data
     await User.deleteMany({ IND_ID: { $nin: sheetIND_IDs } });
 
     // Prepare bulk operations for upserting
     const bulkOps = sheetData.map(record => {
-      // Log each record to verify the "Full Name" field
+      // Log each record to verify the field names
       console.log('Record fetched from SheetDB:', record);
 
       const userData = {
-        IND_ID: record['IND_ID'],
-        FullName: record['Full Name'],  // Ensure this is correctly mapped
-        Event: record['Event'],
-        State: record['State'],
-        Org: record['Org'],
-        Phone: record['Phone'],
-        Email: record['Email'],
-        Bio: record['Bio'],
-        Pic: record['Pic'],
-        QRCode: record['QR code'],
+        IND_ID: record['ind_id'],
+        FullName: record['full_name'],
+        Event: record['event'],
+        State: record['state'],
+        Org: record['org'],
+        Phone: record['phone'],
+        Email: record['email'],
+        Bio: record['bio'],
+        Pic: record['pic'],
+        QRCode: record['qr_code'],
         FoodEligibility: [
-          Number(record['Food Eligibility 1']),
-          Number(record['Food Eligibility 2']),
-          Number(record['Food Eligibility 3']),
-          Number(record['Food Eligibility 4']),
-          Number(record['Food Eligibility 5']),
-          Number(record['Food Eligibility 6']),
-          Number(record['Food Eligibility 7']),
-          Number(record['Food Eligibility 8']),
-          Number(record['Food Eligibility 9']),
+          Number(record['food_eligibility_1']),
+          Number(record['food_eligibility_2']),
+          Number(record['food_eligibility_3']),
+          Number(record['food_eligibility_4']),
+          Number(record['food_eligibility_5']),
+          Number(record['food_eligibility_6']),
+          Number(record['food_eligibility_7']),
+          Number(record['food_eligibility_8']),
+          Number(record['food_eligibility_9']),
         ],
       };
 
