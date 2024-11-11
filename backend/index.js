@@ -64,12 +64,12 @@ app.listen(PORT, () => {
 });
 
 // Schedule the data fetching every 5 minutes
-cron.schedule('*/1 * * * *', async () => {
-  try {
-    console.log('Scheduled Task: Fetching data from SheetDB..');
-    const response = await axios.get(`https://hst-dms.vercel.app${PORT}/api/fetch-sheetdb-data`);
-    console.log('Scheduled Task: Data fetched and synchronized successfully.');
-  } catch (error) {
-    console.error('Scheduled Task Error:', error.message);
-  }
-});
+// cron.schedule('*/1 * * * *', async () => {
+//   try {
+//     console.log('Scheduled Task: Fetching data from SheetDB..');
+//     const response = await axios.get(`https://hst-dms.vercel.app${PORT}/api/fetch-sheetdb-data`);
+//     console.log('Scheduled Task: Data fetched and synchronized successfully.');
+//   } catch (error) {
+//     console.error('Scheduled Task Error:', error.message);
+//   }
+// });
