@@ -73,10 +73,24 @@ async function fetchAndSyncData(req, res) {
         userData.FoodEligibility.push(numValue);
       }
 
+      // Set the update object
+      const updateObj = {
+        FullName: userData.FullName,
+        Event: userData.Event,
+        State: userData.State,
+        Org: userData.Org,
+        Phone: userData.Phone,
+        Email: userData.Email,
+        Bio: userData.Bio,
+        Pic: userData.Pic,
+        QRCode: userData.QRCode,
+        FoodEligibility: userData.FoodEligibility
+      };
+
       return {
         updateOne: {
           filter: { IND_ID: userData.IND_ID },
-          update: { $set: userData },
+          update: { $set: updateObj },
           upsert: true,
         },
       };
