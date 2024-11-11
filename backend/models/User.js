@@ -14,7 +14,7 @@ const UserSchema = new mongoose.Schema({
   Pic: String,
   QRCode: String,
   FoodEligibility: {
-    type: [Number],
+    type: [parseInt],
     default: Array(9).fill(0)
   }
 }, { timestamps: true });
