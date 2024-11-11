@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 
 const UserSchema = new mongoose.Schema({
   IND_ID: { type: String, unique: true },
-  FullName: String,
+  'Full Name': String,
   Event: String,
   State: String,
   Org: String,
@@ -12,11 +12,16 @@ const UserSchema = new mongoose.Schema({
   Email: String,
   Bio: String,
   Pic: String,
-  QRCode: String,
-  FoodEligibility: {
-    type: [Number],
-    default: Array(9).fill(0)
-  }
+  'QR code': String,
+  'Food Eligibility 1': Number,
+  'Food Eligibility 2': Number,
+  'Food Eligibility 3': Number,
+  'Food Eligibility 4': Number,
+  'Food Eligibility 5': Number,
+  'Food Eligibility 6': Number,
+  'Food Eligibility 7': Number,
+  'Food Eligibility 8': Number,
+  'Food Eligibility 9': Number,
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', UserSchema);
