@@ -11,7 +11,7 @@ function UserUsage() {
 
   const fetchUserData = (indId) => {
     axios
-      .get(`https://hst-dms.vercel.app//api/user/${indId}`)
+      .get(`https://hst-dms.vercel.app/api/user/${indId}`)
       .then((response) => {
         setUser(response.data);
       })
@@ -22,7 +22,7 @@ function UserUsage() {
       });
 
     axios
-      .get(`https://hst-dms.vercel.app//api/usages/${indId}`)
+      .get(`https://hst-dms.vercel.app/api/usages/${indId}`)
       .then((response) => {
         setUsages(response.data);
       })

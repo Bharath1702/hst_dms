@@ -14,7 +14,7 @@ function CouponValidityManager() {
 
   const fetchCouponValidities = async () => {
     try {
-      const response = await axios.get('https://hst-dms.vercel.app//api/coupon-validities');
+      const response = await axios.get('https://hst-dms.vercel.app/api/coupon-validities');
       setCouponValidities(response.data);
     } catch (error) {
       console.error('Error fetching coupon validities:', error);
@@ -47,14 +47,14 @@ function CouponValidityManager() {
     try {
       if (id) {
         // Update existing coupon validity
-        await axios.put(`https://hst-dms.vercel.app//api/coupon-validities/${id}`, {
+        await axios.put(`https://hst-dms.vercel.app/api/coupon-validities/${id}`, {
           couponIndex,
           startDateTime,
           endDateTime,
         });
       } else {
         // Create new coupon validity
-        await axios.post('https://hst-dms.vercel.app//api/coupon-validities', {
+        await axios.post('https://hst-dms.vercel.app/api/coupon-validities', {
           couponIndex,
           startDateTime,
           endDateTime,
@@ -72,7 +72,7 @@ function CouponValidityManager() {
   const handleDelete = async (id, couponIndex) => {
     if (window.confirm(`Are you sure you want to delete validity for Coupon ${couponIndex}?`)) {
       try {
-        await axios.delete(`https://hst-dms.vercel.app//api/coupon-validities/${id}`);
+        await axios.delete(`https://hst-dms.vercel.app/api/coupon-validities/${id}`);
         fetchCouponValidities();
         alert(`Coupon ${couponIndex} validity deleted successfully.`);
       } catch (error) {
