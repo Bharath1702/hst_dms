@@ -22,7 +22,7 @@ function UserTable() {
   useEffect(() => {
     // Fetch all users from backend
     axios
-      .get('http://localhost:5000/api/allUsers')
+      .get('https://hst-dms.vercel.app//api/allUsers')
       .then((response) => {
         setUsers(response.data);
       })

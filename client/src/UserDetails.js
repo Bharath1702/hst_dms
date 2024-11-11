@@ -12,7 +12,7 @@ function UserDetails() {
 
   useEffect(() => {
     axios
-      .get(`http://localhost:5000/api/user/${indId}`)
+      .get(`https://hst-dms.vercel.app//api/user/${indId}`)
       .then((response) => {
         setUser(response.data);
       })

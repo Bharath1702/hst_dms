@@ -17,7 +17,7 @@ function UsagePage() {
   }, []);
 
   const fetchUniqueFilters = () => {
-    axios.get('http://localhost:5000/api/usages')
+    axios.get('https://hst-dms.vercel.app//api/usages')
       .then((response) => {
         const data = response.data;
         const couponIndexes = [...new Set(data.map(u => u.couponIndex + 1))].sort();
@@ -29,7 +29,7 @@ function UsagePage() {
   };
 
   const fetchUsages = () => {
-    axios.get('http://localhost:5000/api/usages')
+    axios.get('https://hst-dms.vercel.app//api/usages')
       .then((response) => {
         setUsages(response.data);
         setFilteredUsages(response.data); // Initialize filteredUsages with full data
