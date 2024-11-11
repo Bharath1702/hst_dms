@@ -1,5 +1,4 @@
 // frontend/src/components/UserDetails.js
-
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Container, Card, Button, Alert } from 'react-bootstrap';
@@ -35,9 +34,9 @@ function UserDetails() {
     const vCardData = `
 BEGIN:VCARD
 VERSION:3.0
-FN:${user.FullName}
-EMAIL;TYPE=INTERNET:${user.Email}
-TEL;TYPE=CELL:${user.Phone}
+FN:${user.FullName || 'Unknown Name'}
+EMAIL;TYPE=INTERNET:${user.Email || ''}
+TEL;TYPE=CELL:${user.Phone || ''}
 END:VCARD
     `.trim();
 
@@ -46,7 +45,7 @@ END:VCARD
 
     const link = document.createElement('a');
     link.href = url;
-    link.download = `${user.FullName.replace(/\s+/g, '_')}.vcf`;
+    link.download = `${(user.FullName || 'Unknown').replace(/\s+/g, '_')}.vcf`; // Add a fallback for undefined FullName
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
