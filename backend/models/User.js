@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 
 const UserSchema = new mongoose.Schema({
   IND_ID: { type: String, unique: true },
-  FullName: { type: String, alias: 'Full Name' },
+  FullName: String,
   Event: String,
   State: String,
   Org: String,
@@ -12,11 +12,10 @@ const UserSchema = new mongoose.Schema({
   Email: String,
   Bio: String,
   Pic: String,
-  QRCode: { type: String, alias: 'QR code' },
+  QRCode: String,
   FoodEligibility: {
     type: [Number],
-    default: Array(9).fill(0),
-    alias: 'Food Eligibility' // Alias if needed
+    default: Array(9).fill(0)
   }
 }, { timestamps: true });
 
