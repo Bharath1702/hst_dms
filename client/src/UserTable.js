@@ -20,15 +20,21 @@ function UserTable() {
   const [users, setUsers] = useState([]);
 
   useEffect(() => {
-    // Fetch all users from backend
-    axios
-      .get('https://hst-dms.vercel.app/api/allUsers')
-      .then((response) => {
+    // Fetch and sync data from backend
+    const fetchData = async () => {
+      try {
+        // Call backend endpoint to fetch and sync data from SheetDB
+        await axios.get('https://hst-dms.vercel.app/api/fetch-and-sync');
+        
+        // After sync, fetch users data
+        const response = await axios.get('https://hst-dms.vercel.app/api/allUsers');
         setUsers(response.data);
-      })
-      .catch((error) => {
+      } catch (error) {
         console.error('Error fetching users from backend:', error);
-      });
+      }
+    };
+
+    fetchData();
   }, []);
 
   const handleDownloadQR = (indId, index) => {
@@ -47,7 +53,7 @@ function UserTable() {
     const promises = [];
 
     users.forEach((user) => {
-      const qrValue = `http://localhost:3000/user/${user.IND_ID}`;
+      const qrValue = `https://hst-dms-frontend.vercel.app/user/${user.IND_ID}`;
       const promise = QRCode.toDataURL(qrValue, {
         width: 128,
         margin: 1,
@@ -168,7 +174,7 @@ function UserTable() {
                   >
                     {/* QR Code */}
                     <QRCodeCanvas
-                      value={`http://localhost:3000/user/${user.IND_ID}`}
+                      value={`https://hst-dms-frontend.vercel.app/user/${user.IND_ID}`}
                       size={128}
                       level="H"
                       includeMargin={true}

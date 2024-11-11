@@ -4,10 +4,7 @@ const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const cron = require('node-cron');
 const User = require('./models/User');
-const Usage = require('./models/Usage');
-const CouponValidity = require('./models/CouponValidity');
 const fetchSheetDBDataRoute = require('./routes/fetchSheetDBData');
 require('dotenv').config();
 
@@ -15,14 +12,14 @@ const app = express();
 
 // Global CORS Headers
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*'); // Replace '*' with specific origin for production
+  res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
   next();
 });
 
 // Middleware
-app.use(cors()); // Using cors as middleware globally
+app.use(cors());
 app.use(express.json());
 
 // MongoDB Atlas connection
@@ -57,19 +54,27 @@ app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'OK' });
 });
 
-// Start the server on port 5000
+// Route to fetch and sync data from SheetDB
+app.get('/api/fetch-and-sync', async (req, res) => {
+  try {
+    console.log('Fetching data from SheetDB...');
+    const response = await axios.get(process.env.SHEETDB_API_URL);
+    const data = response.data;
+
+    // Update database with data from SheetDB (adjust this logic based on your data model)
+    await User.deleteMany(); // Clear existing data (optional)
+    await User.insertMany(data); // Insert new data
+
+    console.log('Data fetched and synchronized successfully.');
+    res.status(200).json({ message: 'Data fetched and synchronized successfully.' });
+  } catch (error) {
+    console.error('Error fetching data from SheetDB:', error.message);
+    res.status(500).json({ error: 'Error fetching data' });
+  }
+});
+
+// Start the server
 const PORT = process.env.PORT || 80;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
-
-// Schedule the data fetching every 5 minutes
-// cron.schedule('*/1 * * * *', async () => {
-//   try {
-//     console.log('Scheduled Task: Fetching data from SheetDB..');
-//     const response = await axios.get(`https://hst-dms.vercel.app${PORT}/api/fetch-sheetdb-data`);
-//     console.log('Scheduled Task: Data fetched and synchronized successfully.');
-//   } catch (error) {
-//     console.error('Scheduled Task Error:', error.message);
-//   }
-// });
