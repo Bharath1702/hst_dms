@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 
 const UserSchema = new mongoose.Schema({
   IND_ID: { type: String, unique: true },
-  'Full Name': String,
+  FullName: String,
   Event: String,
   State: String,
   Org: String,
@@ -12,16 +12,27 @@ const UserSchema = new mongoose.Schema({
   Email: String,
   Bio: String,
   Pic: String,
-  'QR code': String,
-  'Food Eligibility 1': Number,
-  'Food Eligibility 2': Number,
-  'Food Eligibility 3': Number,
-  'Food Eligibility 4': Number,
-  'Food Eligibility 5': Number,
-  'Food Eligibility 6': Number,
-  'Food Eligibility 7': Number,
-  'Food Eligibility 8': Number,
-  'Food Eligibility 9': Number,
+  QRCode: String,
+  FoodEligibility: {
+    type: [Number],
+    default: Array(9).fill(0)
+  }
 }, { timestamps: true });
+
+// Virtuals for 'Full Name' and 'QR code'
+UserSchema.virtual('Full Name')
+  .get(function() { return this.FullName; })
+  .set(function(value) { this.FullName = value; });
+
+UserSchema.virtual('QR code')
+  .get(function() { return this.QRCode; })
+  .set(function(value) { this.QRCode = value; });
+
+// Virtuals for 'Food Eligibility N'
+for (let i = 1; i <= 9; i++) {
+  UserSchema.virtual(`Food Eligibility ${i}`)
+    .get(function() { return this.FoodEligibility[i - 1]; })
+    .set(function(value) { this.FoodEligibility[i - 1] = Number(value); });
+}
 
 module.exports = mongoose.model('User', UserSchema);
