@@ -1,5 +1,3 @@
-// client/src/UserTable.js
-
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import {
@@ -18,14 +16,15 @@ import QRCode from 'qrcode';
 
 function UserTable() {
   const [users, setUsers] = useState([]);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   useEffect(() => {
     // Fetch and sync data from backend
     const fetchData = async () => {
       try {
         // Call backend endpoint to fetch and sync data from SheetDB
-        await axios.get('https://hst-dms.vercel.app/api/fetch-and-sync');
-        
+        await axios.get('https://hst-dms.vercel.app/api/fetch-sheetdb-data');
+
         // After sync, fetch users data
         const response = await axios.get('https://hst-dms.vercel.app/api/allUsers');
         setUsers(response.data);
@@ -48,50 +47,47 @@ function UserTable() {
       });
   };
 
-  const handleDownloadAllQRs = () => {
-    const doc = new jsPDF();
-    const promises = [];
-
-    users.forEach((user) => {
-      const qrValue = `https://hst-dms-frontend.vercel.app/user/${user.IND_ID}`;
-      const promise = QRCode.toDataURL(qrValue, {
-        width: 128,
-        margin: 1,
-      }).then((url) => {
+  const handleDownloadAllQRs = async () => {
+    try {
+      const doc = new jsPDF();
+      const promises = users.map(async (user) => {
+        const qrValue = `https://hst-dms-frontend.vercel.app/user/${user.IND_ID}`;
+        const url = await QRCode.toDataURL(qrValue, {
+          width: 128,
+          margin: 1,
+        });
         return { url, user };
       });
-      promises.push(promise);
-    });
 
-    Promise.all(promises)
-      .then((results) => {
-        let x = 10;
-        let y = 10;
-        const qrSize = 40; // Adjust size as needed
-        const itemsPerRow = 4;
+      const results = await Promise.all(promises);
 
-        results.forEach((result, idx) => {
-          const { url, user } = result;
-          doc.addImage(url, 'PNG', x, y, qrSize, qrSize);
-          // Add the IND_ID below the QR code
-          doc.setFontSize(10);
-          doc.text(
-            user.IND_ID,
-            x + qrSize / 2,
-            y + qrSize + 5,
-            { align: 'center' }
-          );
-          x += qrSize + 10;
-          if ((idx + 1) % itemsPerRow === 0) {
-            x = 10;
-            y += qrSize + 20; // Adjust spacing as needed
-          }
-        });
-        doc.save('All_QRCodes.pdf');
-      })
-      .catch((error) => {
-        console.error('Error generating all QR codes:', error);
+      let x = 10;
+      let y = 10;
+      const qrSize = 40; // Adjust size as needed
+      const itemsPerRow = 4;
+
+      results.forEach((result, idx) => {
+        const { url, user } = result;
+        doc.addImage(url, 'PNG', x, y, qrSize, qrSize);
+        // Add the IND_ID below the QR code
+        doc.setFontSize(10);
+        doc.text(
+          user.IND_ID,
+          x + qrSize / 2,
+          y + qrSize + 5,
+          { align: 'center' }
+        );
+        x += qrSize + 10;
+        if ((idx + 1) % itemsPerRow === 0) {
+          x = 10;
+          y += qrSize + 20; // Adjust spacing as needed
+        }
       });
+
+      doc.save('All_QRCodes.pdf');
+    } catch (error) {
+      console.error('Error generating all QR codes:', error);
+    }
   };
 
   const truncateText = (text, maxLength = 20) => {
@@ -113,7 +109,11 @@ function UserTable() {
         }}
       >
         <h1>User Data</h1>
-        <Button variant="success" onClick={handleDownloadAllQRs}>
+        <Button
+          variant="success"
+          onClick={handleDownloadAllQRs}
+          disabled={users.length === 0}
+        >
           Download All QR Codes
         </Button>
       </div>
@@ -136,7 +136,7 @@ function UserTable() {
           {users.map((user, index) => (
             <tr key={user.IND_ID}>
               <td title={user.IND_ID}>{truncateText(user.IND_ID)}</td>
-              <td title={user.FullName || user['Full Name']}>{truncateText(user.FullName || user['Full Name'])}</td>
+              <td title={user.FullName}>{truncateText(user.FullName)}</td>
               <td title={user.Event}>{truncateText(user.Event)}</td>
               <td title={user.State}>{truncateText(user.State)}</td>
               <td title={user.Org}>{truncateText(user.Org)}</td>
@@ -170,6 +170,7 @@ function UserTable() {
                       position: 'relative',
                       width: '128px',
                       height: '128px',
+                      marginBottom: '10px',
                     }}
                   >
                     {/* QR Code */}
@@ -183,10 +184,10 @@ function UserTable() {
                     <div
                       style={{
                         position: 'absolute',
-                        top: '96%',
+                        bottom: '5px',
                         left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        backgroundColor: '',
+                        transform: 'translateX(-50%)',
+                        backgroundColor: 'rgba(255, 255, 255, 0.8)',
                         color: 'black',
                         padding: '2px 5px',
                         borderRadius: '5px',
@@ -195,7 +196,7 @@ function UserTable() {
                       <span
                         style={{
                           fontWeight: 'bold',
-                          fontSize: '14px',
+                          fontSize: '12px',
                         }}
                       >
                         {user.IND_ID}
@@ -206,7 +207,7 @@ function UserTable() {
                   <OverlayTrigger
                     placement="top"
                     overlay={renderTooltip(
-                      `View details of ${user.FullName || user['Full Name']}`
+                      `View details of ${user.FullName}`
                     )}
                   >
                     <Button
