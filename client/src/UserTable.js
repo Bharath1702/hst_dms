@@ -6,6 +6,7 @@ import {
   OverlayTrigger,
   Tooltip,
   Container,
+  Spinner,
 } from 'react-bootstrap';
 import { QRCodeCanvas } from 'qrcode.react';
 import { Link } from 'react-router-dom';
@@ -13,15 +14,19 @@ import { toPng } from 'html-to-image';
 import download from 'downloadjs';
 import jsPDF from 'jspdf';
 import QRCode from 'qrcode';
+import JSZip from 'jszip'; // Import JSZip
 
 function UserTable() {
   const [users, setUsers] = useState([]);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isDownloadingAll, setIsDownloadingAll] = useState(false); // State for Download All QR Codes
+  const [isDownloadingFolder, setIsDownloadingFolder] = useState(false); // State for Download Folder
 
   useEffect(() => {
     // Fetch and sync data from backend
     const fetchData = async () => {
       try {
+        setIsSyncing(true);
         // Call backend endpoint to fetch and sync data from SheetDB
         await axios.get('https://hst-dms.vercel.app/api/fetch-sheetdb-data');
 
@@ -30,6 +35,8 @@ function UserTable() {
         setUsers(response.data);
       } catch (error) {
         console.error('Error fetching users from backend:', error);
+      } finally {
+        setIsSyncing(false);
       }
     };
 
@@ -49,6 +56,7 @@ function UserTable() {
 
   const handleDownloadAllQRs = async () => {
     try {
+      setIsDownloadingAll(true);
       // Initialize jsPDF with desired orientation and units
       const doc = new jsPDF({
         orientation: 'portrait',
@@ -111,6 +119,46 @@ function UserTable() {
       doc.save('All_QRCodes.pdf');
     } catch (error) {
       console.error('Error generating all QR codes:', error);
+    } finally {
+      setIsDownloadingAll(false);
+    }
+  };
+
+  const handleDownloadFolder = async () => {
+    try {
+      setIsDownloadingFolder(true);
+      const zip = new JSZip();
+
+      // Generate QR codes and add to zip
+      const promises = users.map(async (user) => {
+        const qrValue = `https://hst-dms-frontend.vercel.app/user/${user.IND_ID}`;
+        const dataUrl = await QRCode.toDataURL(qrValue, {
+          width: 128,
+          margin: 1,
+        });
+        // Convert Data URL to binary
+        const response = await fetch(dataUrl);
+        const blob = await response.blob();
+        const arrayBuffer = await blob.arrayBuffer();
+        return { indId: user.IND_ID, data: arrayBuffer };
+      });
+
+      const results = await Promise.all(promises);
+
+      // Add each QR code to its respective folder
+      results.forEach(({ indId, data }) => {
+        zip.folder(indId).file('QRCode.png', data, { binary: true });
+      });
+
+      // Generate the ZIP file
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+
+      // Trigger the download
+      download(zipBlob, 'User_QRCodes.zip');
+    } catch (error) {
+      console.error('Error generating folder with QR codes:', error);
+    } finally {
+      setIsDownloadingFolder(false);
     }
   };
 
@@ -133,13 +181,51 @@ function UserTable() {
         }}
       >
         <h1>User Data</h1>
-        <Button
-          variant="success"
-          onClick={handleDownloadAllQRs}
-          disabled={users.length === 0}
-        >
-          Download All QR Codes
-        </Button>
+        <div>
+          <Button
+            variant="success"
+            onClick={handleDownloadAllQRs}
+            disabled={users.length === 0 || isDownloadingAll}
+            className="me-2"
+          >
+            {isDownloadingAll ? (
+              <>
+                <Spinner
+                  as="span"
+                  animation="border"
+                  size="sm"
+                  role="status"
+                  aria-hidden="true"
+                  className="me-2"
+                />
+                Downloading...
+              </>
+            ) : (
+              'Download All QR Codes'
+            )}
+          </Button>
+          <Button
+            variant="primary"
+            onClick={handleDownloadFolder}
+            disabled={users.length === 0 || isDownloadingFolder}
+          >
+            {isDownloadingFolder ? (
+              <>
+                <Spinner
+                  as="span"
+                  animation="border"
+                  size="sm"
+                  role="status"
+                  aria-hidden="true"
+                  className="me-2"
+                />
+                Downloading...
+              </>
+            ) : (
+              'Download Folder'
+            )}
+          </Button>
+        </div>
       </div>
       <Table striped bordered hover responsive className="mt-4">
         <thead>
