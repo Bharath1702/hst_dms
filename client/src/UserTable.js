@@ -49,7 +49,26 @@ function UserTable() {
 
   const handleDownloadAllQRs = async () => {
     try {
-      const doc = new jsPDF();
+      // Initialize jsPDF with desired orientation and units
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      });
+
+      // Define page dimensions and margins
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const marginX = 10;
+      const marginY = 10;
+      const qrSize = 40; // Size of QR code in mm
+      const spacingX = 10; // Horizontal spacing between QR codes
+      const spacingY = 20; // Vertical spacing between QR codes
+      const itemsPerRow = Math.floor((pageWidth - 2 * marginX + spacingX) / (qrSize + spacingX));
+      const itemsPerColumn = Math.floor((pageHeight - 2 * marginY) / (qrSize + spacingY));
+      const itemsPerPage = itemsPerRow * itemsPerColumn;
+
+      // Generate QR codes and prepare data
       const promises = users.map(async (user) => {
         const qrValue = `https://hst-dms-frontend.vercel.app/user/${user.IND_ID}`;
         const url = await QRCode.toDataURL(qrValue, {
@@ -61,29 +80,34 @@ function UserTable() {
 
       const results = await Promise.all(promises);
 
-      let x = 10;
-      let y = 10;
-      const qrSize = 40; // Adjust size as needed
-      const itemsPerRow = 4;
+      // Iterate through all QR codes
+      for (let i = 0; i < results.length; i++) {
+        const { url, user } = results[i];
+        const pageIndex = Math.floor(i / itemsPerPage);
+        const itemIndex = i % itemsPerPage;
 
-      results.forEach((result, idx) => {
-        const { url, user } = result;
-        doc.addImage(url, 'PNG', x, y, qrSize, qrSize);
-        // Add the IND_ID below the QR code
-        doc.setFontSize(10);
-        doc.text(
-          user.IND_ID,
-          x + qrSize / 2,
-          y + qrSize + 5,
-          { align: 'center' }
-        );
-        x += qrSize + 10;
-        if ((idx + 1) % itemsPerRow === 0) {
-          x = 10;
-          y += qrSize + 20; // Adjust spacing as needed
+        // Add new page if not the first
+        if (i > 0 && itemIndex === 0) {
+          doc.addPage();
         }
-      });
 
+        // Calculate position
+        const row = Math.floor(itemIndex / itemsPerRow);
+        const col = itemIndex % itemsPerRow;
+        const x = marginX + col * (qrSize + spacingX);
+        const y = marginY + row * (qrSize + spacingY);
+
+        // Add QR code image
+        doc.addImage(url, 'PNG', x, y, qrSize, qrSize);
+
+        // Add IND_ID below the QR code, centered
+        doc.setFontSize(10);
+        doc.text(user.IND_ID, x + qrSize / 2, y + qrSize + 5, {
+          align: 'center',
+        });
+      }
+
+      // Save the PDF
       doc.save('All_QRCodes.pdf');
     } catch (error) {
       console.error('Error generating all QR codes:', error);
