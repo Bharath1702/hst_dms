@@ -7,31 +7,29 @@ import {
   Tooltip,
   Container,
   Spinner,
+  ProgressBar,
 } from 'react-bootstrap';
 import { QRCodeCanvas } from 'qrcode.react';
 import { Link } from 'react-router-dom';
-import { toPng } from 'html-to-image';
 import download from 'downloadjs';
 import jsPDF from 'jspdf';
 import QRCode from 'qrcode';
-import JSZip from 'jszip';
-import html2canvas from 'html2canvas'; // Import html2canvas
+import { zipSync, strToU8 } from 'fflate'; // Import fflate
 
 function UserTable() {
   const [users, setUsers] = useState([]);
   const [isSyncing, setIsSyncing] = useState(false);
-  const [isDownloadingAll, setIsDownloadingAll] = useState(false); // State for Download All QR Codes PDF
-  const [isDownloadingZIP, setIsDownloadingZIP] = useState(false); // State for Download All QR Codes ZIP
+  const [isDownloadingAll, setIsDownloadingAll] = useState(false);
+  const [isDownloadingZIP, setIsDownloadingZIP] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState(0);
 
   useEffect(() => {
-    // Fetch and sync data from backend
     const fetchData = async () => {
       try {
         setIsSyncing(true);
-        // Call backend endpoint to fetch and sync data from SheetDB
+        // Fetch and sync data from backend
         await axios.get('https://hst-dms.vercel.app/api/fetch-sheetdb-data');
-
-        // After sync, fetch users data
+        // Fetch users data
         const response = await axios.get('https://hst-dms.vercel.app/api/allUsers');
         setUsers(response.data);
       } catch (error) {
@@ -46,77 +44,69 @@ function UserTable() {
 
   const handleDownloadQR = (indId, index) => {
     const qrCodeElement = document.getElementById(`qr-code-container-${index}`);
-    toPng(qrCodeElement)
-      .then((dataUrl) => {
-        download(dataUrl, `${indId}_QRCode.png`);
-      })
-      .catch((error) => {
-        console.error('Error generating QR code image:', error);
-      });
+    if (!qrCodeElement) {
+      console.error(`QR code element not found for index ${index}`);
+      return;
+    }
+    // Use html-to-image to generate the QR code image
+    import('html-to-image').then(({ toPng }) => {
+      toPng(qrCodeElement)
+        .then((dataUrl) => {
+          download(dataUrl, `${indId}_QRCode.png`);
+        })
+        .catch((error) => {
+          console.error('Error generating QR code image:', error);
+        });
+    });
   };
 
   const handleDownloadAllQRsPDF = async () => {
     try {
       setIsDownloadingAll(true);
-      // Initialize jsPDF with desired orientation and units
       const doc = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4',
       });
 
-      // Define page dimensions and margins
       const pageWidth = doc.internal.pageSize.getWidth();
       const pageHeight = doc.internal.pageSize.getHeight();
       const marginX = 10;
       const marginY = 10;
-      const qrSize = 40; // Size of QR code in mm
-      const spacingX = 10; // Horizontal spacing between QR codes
-      const spacingY = 20; // Vertical spacing between QR codes
+      const qrSize = 40;
+      const spacingX = 10;
+      const spacingY = 20;
       const itemsPerRow = Math.floor((pageWidth - 2 * marginX + spacingX) / (qrSize + spacingX));
       const itemsPerColumn = Math.floor((pageHeight - 2 * marginY) / (qrSize + spacingY));
       const itemsPerPage = itemsPerRow * itemsPerColumn;
 
-      // Generate QR codes and prepare data
       const promises = users.map(async (user) => {
         const qrValue = `https://hst-dms-frontend.vercel.app/user/${user.IND_ID}`;
-        const url = await QRCode.toDataURL(qrValue, {
-          width: 128,
-          margin: 1,
-        });
+        const url = await QRCode.toDataURL(qrValue, { width: 128, margin: 1 });
         return { url, user };
       });
 
       const results = await Promise.all(promises);
 
-      // Iterate through all QR codes
       for (let i = 0; i < results.length; i++) {
         const { url, user } = results[i];
         const pageIndex = Math.floor(i / itemsPerPage);
         const itemIndex = i % itemsPerPage;
 
-        // Add new page if not the first
         if (i > 0 && itemIndex === 0) {
           doc.addPage();
         }
 
-        // Calculate position
         const row = Math.floor(itemIndex / itemsPerRow);
         const col = itemIndex % itemsPerRow;
         const x = marginX + col * (qrSize + spacingX);
         const y = marginY + row * (qrSize + spacingY);
 
-        // Add QR code image
         doc.addImage(url, 'PNG', x, y, qrSize, qrSize);
-
-        // Add IND_ID below the QR code, centered
         doc.setFontSize(10);
-        doc.text(user.IND_ID, x + qrSize / 2, y + qrSize + 5, {
-          align: 'center',
-        });
+        doc.text(user.IND_ID, x + qrSize / 2, y + qrSize + 5, { align: 'center' });
       }
 
-      // Save the PDF
       doc.save('All_QRCodes.pdf');
     } catch (error) {
       console.error('Error generating all QR codes PDF:', error);
@@ -128,77 +118,46 @@ function UserTable() {
   const handleDownloadAllQRsZIP = async () => {
     try {
       setIsDownloadingZIP(true);
-      const zip = new JSZip();
+      setDownloadProgress(0);
 
-      // Iterate through all users
-      for (let i = 0; i < users.length; i++) {
-        const user = users[i];
-        const qrValue = `https://hst-dms-frontend.vercel.app/user/${user.IND_ID}`;
+      const zipFiles = {};
 
-        // Generate QR code data URL
-        const qrDataUrl = await QRCode.toDataURL(qrValue, {
-          width: 128,
-          margin: 1,
-        });
+      const total = users.length;
+      let processed = 0;
 
-        // Create an off-screen div to render QR code with text
-        const offScreenDiv = document.createElement('div');
-        offScreenDiv.style.position = 'absolute';
-        offScreenDiv.style.top = '-9999px';
-        offScreenDiv.style.left = '-9999px';
-        offScreenDiv.style.display = 'flex';
-        offScreenDiv.style.flexDirection = 'column';
-        offScreenDiv.style.alignItems = 'center';
-        offScreenDiv.style.justifyContent = 'center';
+      // Process all users and add to zipFiles object
+      const promises = users.map(async (user) => {
+        try {
+          const qrValue = `https://hst-dms-frontend.vercel.app/user/${user.IND_ID}`;
+          const qrDataUrl = await QRCode.toDataURL(qrValue, { width: 128, margin: 1 });
+          const base64Data = qrDataUrl.split(',')[1];
+          // Convert base64 to Uint8Array
+          const binaryStr = atob(base64Data);
+          const binaryLen = binaryStr.length;
+          const bytes = new Uint8Array(binaryLen);
+          for (let j = 0; j < binaryLen; j++) {
+            bytes[j] = binaryStr.charCodeAt(j);
+          }
+          zipFiles[`${user.IND_ID}.png`] = bytes;
+        } catch (error) {
+          console.error(`Error generating QR for ${user.IND_ID}:`, error);
+        } finally {
+          processed += 1;
+          setDownloadProgress((processed / total) * 100);
+        }
+      });
 
-        // Create QRCodeCanvas element
-        const qrCanvas = document.createElement('canvas');
-        const qrImg = new Image();
-        qrImg.src = qrDataUrl;
-        await new Promise((resolve, reject) => {
-          qrImg.onload = () => {
-            qrCanvas.width = qrImg.width;
-            qrCanvas.height = qrImg.height;
-            const ctx = qrCanvas.getContext('2d');
-            ctx.drawImage(qrImg, 0, 0);
-            resolve();
-          };
-          qrImg.onerror = reject;
-        });
+      await Promise.all(promises);
 
-        // Create text element
-        const textElement = document.createElement('div');
-        textElement.style.textAlign = 'center';
-        textElement.style.marginTop = '5px';
-        textElement.style.fontSize = '16px';
-        textElement.style.fontWeight = 'bold';
-        textElement.textContent = user.IND_ID;
-
-        // Append to off-screen div
-        offScreenDiv.appendChild(qrCanvas);
-        offScreenDiv.appendChild(textElement);
-        document.body.appendChild(offScreenDiv);
-
-        // Use html2canvas to capture the div as an image
-        const canvas = await html2canvas(offScreenDiv, { backgroundColor: null });
-        const imgData = canvas.toDataURL('image/png');
-
-        // Remove the off-screen div
-        document.body.removeChild(offScreenDiv);
-
-        // Add image to ZIP with filename as IND_ID.png
-        zip.file(`${user.IND_ID}.png`, imgData.split(',')[1], { base64: true });
-      }
-
-      // Generate the ZIP file
-      const zipBlob = await zip.generateAsync({ type: 'blob' });
-
-      // Trigger the download
-      download(zipBlob, 'All_QRCodes.zip');
+      // Use fflate's zipSync for faster ZIP creation
+      const zippedData = zipSync(zipFiles, { level: 9 });
+      const blob = new Blob([zippedData], { type: 'application/zip' });
+      download(blob, 'All_QRCodes.zip');
     } catch (error) {
       console.error('Error generating all QR codes ZIP:', error);
     } finally {
       setIsDownloadingZIP(false);
+      setDownloadProgress(0);
     }
   };
 
@@ -267,6 +226,20 @@ function UserTable() {
           </Button>
         </div>
       </div>
+      {isDownloadingZIP && (
+        <div className="mt-3">
+          <Spinner
+            as="span"
+            animation="border"
+            size="sm"
+            role="status"
+            aria-hidden="true"
+            className="me-2"
+          />
+          Downloading ZIP... {Math.round(downloadProgress)}%
+          <ProgressBar now={downloadProgress} label={`${Math.round(downloadProgress)}%`} className="mt-2" />
+        </div>
+      )}
       <Table striped bordered hover responsive className="mt-4">
         <thead>
           <tr>
