@@ -14,13 +14,14 @@ import { toPng } from 'html-to-image';
 import download from 'downloadjs';
 import jsPDF from 'jspdf';
 import QRCode from 'qrcode';
-import JSZip from 'jszip'; // Import JSZip
+import JSZip from 'jszip';
+import html2canvas from 'html2canvas'; // Import html2canvas
 
 function UserTable() {
   const [users, setUsers] = useState([]);
   const [isSyncing, setIsSyncing] = useState(false);
-  const [isDownloadingAll, setIsDownloadingAll] = useState(false); // State for Download All QR Codes
-  const [isDownloadingFolder, setIsDownloadingFolder] = useState(false); // State for Download Folder
+  const [isDownloadingAll, setIsDownloadingAll] = useState(false); // State for Download All QR Codes PDF
+  const [isDownloadingZIP, setIsDownloadingZIP] = useState(false); // State for Download All QR Codes ZIP
 
   useEffect(() => {
     // Fetch and sync data from backend
@@ -54,7 +55,7 @@ function UserTable() {
       });
   };
 
-  const handleDownloadAllQRs = async () => {
+  const handleDownloadAllQRsPDF = async () => {
     try {
       setIsDownloadingAll(true);
       // Initialize jsPDF with desired orientation and units
@@ -118,47 +119,86 @@ function UserTable() {
       // Save the PDF
       doc.save('All_QRCodes.pdf');
     } catch (error) {
-      console.error('Error generating all QR codes:', error);
+      console.error('Error generating all QR codes PDF:', error);
     } finally {
       setIsDownloadingAll(false);
     }
   };
 
-  const handleDownloadFolder = async () => {
+  const handleDownloadAllQRsZIP = async () => {
     try {
-      setIsDownloadingFolder(true);
+      setIsDownloadingZIP(true);
       const zip = new JSZip();
 
-      // Generate QR codes and add to zip
-      const promises = users.map(async (user) => {
+      // Iterate through all users
+      for (let i = 0; i < users.length; i++) {
+        const user = users[i];
         const qrValue = `https://hst-dms-frontend.vercel.app/user/${user.IND_ID}`;
-        const dataUrl = await QRCode.toDataURL(qrValue, {
+
+        // Generate QR code data URL
+        const qrDataUrl = await QRCode.toDataURL(qrValue, {
           width: 128,
           margin: 1,
         });
-        // Convert Data URL to binary
-        const response = await fetch(dataUrl);
-        const blob = await response.blob();
-        const arrayBuffer = await blob.arrayBuffer();
-        return { indId: user.IND_ID, data: arrayBuffer };
-      });
 
-      const results = await Promise.all(promises);
+        // Create an off-screen div to render QR code with text
+        const offScreenDiv = document.createElement('div');
+        offScreenDiv.style.position = 'absolute';
+        offScreenDiv.style.top = '-9999px';
+        offScreenDiv.style.left = '-9999px';
+        offScreenDiv.style.display = 'flex';
+        offScreenDiv.style.flexDirection = 'column';
+        offScreenDiv.style.alignItems = 'center';
+        offScreenDiv.style.justifyContent = 'center';
 
-      // Add each QR code to its respective folder
-      results.forEach(({ indId, data }) => {
-        zip.folder(indId).file('QRCode.png', data, { binary: true });
-      });
+        // Create QRCodeCanvas element
+        const qrCanvas = document.createElement('canvas');
+        const qrImg = new Image();
+        qrImg.src = qrDataUrl;
+        await new Promise((resolve, reject) => {
+          qrImg.onload = () => {
+            qrCanvas.width = qrImg.width;
+            qrCanvas.height = qrImg.height;
+            const ctx = qrCanvas.getContext('2d');
+            ctx.drawImage(qrImg, 0, 0);
+            resolve();
+          };
+          qrImg.onerror = reject;
+        });
+
+        // Create text element
+        const textElement = document.createElement('div');
+        textElement.style.textAlign = 'center';
+        textElement.style.marginTop = '5px';
+        textElement.style.fontSize = '16px';
+        textElement.style.fontWeight = 'bold';
+        textElement.textContent = user.IND_ID;
+
+        // Append to off-screen div
+        offScreenDiv.appendChild(qrCanvas);
+        offScreenDiv.appendChild(textElement);
+        document.body.appendChild(offScreenDiv);
+
+        // Use html2canvas to capture the div as an image
+        const canvas = await html2canvas(offScreenDiv, { backgroundColor: null });
+        const imgData = canvas.toDataURL('image/png');
+
+        // Remove the off-screen div
+        document.body.removeChild(offScreenDiv);
+
+        // Add image to ZIP with filename as IND_ID.png
+        zip.file(`${user.IND_ID}.png`, imgData.split(',')[1], { base64: true });
+      }
 
       // Generate the ZIP file
       const zipBlob = await zip.generateAsync({ type: 'blob' });
 
       // Trigger the download
-      download(zipBlob, 'User_QRCodes.zip');
+      download(zipBlob, 'All_QRCodes.zip');
     } catch (error) {
-      console.error('Error generating folder with QR codes:', error);
+      console.error('Error generating all QR codes ZIP:', error);
     } finally {
-      setIsDownloadingFolder(false);
+      setIsDownloadingZIP(false);
     }
   };
 
@@ -184,7 +224,7 @@ function UserTable() {
         <div>
           <Button
             variant="success"
-            onClick={handleDownloadAllQRs}
+            onClick={handleDownloadAllQRsPDF}
             disabled={users.length === 0 || isDownloadingAll}
             className="me-2"
           >
@@ -198,18 +238,18 @@ function UserTable() {
                   aria-hidden="true"
                   className="me-2"
                 />
-                Downloading...
+                Downloading PDF...
               </>
             ) : (
-              'Download All QR Codes'
+              'Download All QR Codes (PDF)'
             )}
           </Button>
           <Button
             variant="primary"
-            onClick={handleDownloadFolder}
-            disabled={users.length === 0 || isDownloadingFolder}
+            onClick={handleDownloadAllQRsZIP}
+            disabled={users.length === 0 || isDownloadingZIP}
           >
-            {isDownloadingFolder ? (
+            {isDownloadingZIP ? (
               <>
                 <Spinner
                   as="span"
@@ -219,10 +259,10 @@ function UserTable() {
                   aria-hidden="true"
                   className="me-2"
                 />
-                Downloading...
+                Downloading ZIP...
               </>
             ) : (
-              'Download Folder'
+              'Download All QR Codes (ZIP)'
             )}
           </Button>
         </div>
@@ -296,11 +336,11 @@ function UserTable() {
                         position: 'absolute',
                         bottom: '5px',
                         left: '50%',
-                        top: '84%',
                         transform: 'translateX(-50%)',
                         color: 'black',
                         padding: '2px 5px',
                         borderRadius: '5px',
+                        backgroundColor: 'rgba(255, 255, 255, 0.8)',
                       }}
                     >
                       <span
