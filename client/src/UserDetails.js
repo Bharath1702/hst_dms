@@ -59,10 +59,7 @@ END:VCARD
     return <h1 className="loading">Loading...</h1>;
   }
 
-  const profileImage =
-    user.Pic && user.Pic.trim() !== ''
-      ? user.Pic
-      : 'https://via.placeholder.com/150';
+  const profileImage ='https://iitmandicatalyst.in/hst2024/images/logo.png'
 
   const fullName = user.FullName || user['Full Name'] || 'No Name Provided';
 
