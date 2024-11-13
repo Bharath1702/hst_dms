@@ -113,7 +113,7 @@ END:VCARD
             <Button variant="primary" onClick={handleSaveContact}>
               Save Contact
             </Button>
-            <center>
+            <center style={'color:white'}>
               powered by <a href="https://blueticksinnovations.com">Blueticks Innovations Private Limited</a>
             </center>
           </Card.Body>
