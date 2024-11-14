@@ -114,7 +114,7 @@ END:VCARD
               Save Contact
             </Button>
             <center className='bipl'>
-              powered by <a href="https://blueticksinnovations.com">Blueticks Innovations Private Limited</a>
+              powered by <a href="https://blueticksinnovations.com"><img src='https://blueticksinnovations.com/img/logo_nobg.png'></img></a>
             </center>
           </Card.Body>
         </Card>
