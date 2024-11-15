@@ -11,7 +11,7 @@ import NavigationBar from './Navbar';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 // The 4-digit password to access protected routes
-const ACCESS_PASSWORD = "1234"; // Change this to the desired password
+const ACCESS_PASSWORD = "170204"; // Change this to the desired password
 
 // Protected Route Component with Password Check
 const ProtectedRoute = ({ children }) => {
@@ -42,7 +42,7 @@ const ProtectedRoute = ({ children }) => {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="4-digit password"
-          maxLength={4}
+          maxLength={6}
           style={{ padding: '10px', fontSize: '16px', width: '100px', textAlign: 'center' }}
         />
         <button type="submit" style={{ marginLeft: '10px', padding: '10px 15px' }}>Submit</button>
