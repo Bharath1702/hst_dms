@@ -76,24 +76,24 @@ function AppContent() {
     <>
       {!shouldHideNav && <NavigationBar />}
       <Routes>
-        <Route path="/" element={<ProtectedRoute><UserTable /></ProtectedRoute>} />
+        {/* <Route path="/usertable" element={<ProtectedRoute><UserTable /></ProtectedRoute>} /> */}
         <Route path="/user/:indId" element={<UserDetails />} />
-        <Route
+        {/* <Route
           path="/user/:indId/usage"
           element={
             <ProtectedRoute>
               <UserUsage />
             </ProtectedRoute>
           }
-        />
-        <Route
+        /> */}
+        {/* <Route
           path="/coupon-validity"
           element={
             <ProtectedRoute>
               <CouponValidityManager />
             </ProtectedRoute>
           }
-        />
+        /> */}
         <Route
           path="/usages"
           element={
